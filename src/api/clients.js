@@ -274,5 +274,31 @@ export const clientsAPI = {
         status: error.response?.status
       };
     }
+  },
+
+  // Delete all Q&A data for a client
+  deleteQAData: async (id) => {
+    try {
+      const response = await apiClient.delete(`/api/admin/clients/${id}/qa-data`);
+      return response.data;
+    } catch (error) {
+      throw {
+        message: error.response?.data?.message || error.message || 'Failed to delete Q&A data',
+        status: error.response?.status
+      };
+    }
+  },
+
+  // Delete all scraped chunks for a client
+  deleteScrapedChunks: async (id) => {
+    try {
+      const response = await apiClient.delete(`/api/admin/clients/${id}/scraped-chunks`);
+      return response.data;
+    } catch (error) {
+      throw {
+        message: error.response?.data?.message || error.message || 'Failed to delete scraped chunks',
+        status: error.response?.status
+      };
+    }
   }
 };

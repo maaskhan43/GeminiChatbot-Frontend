@@ -116,7 +116,7 @@ const ChatbotTestModal = ({ isOpen, onClose }) => {
     ]);
   };
 
-  const sendMessage = async (messageText = null) => {
+  const sendMessage = async (messageText = null, skipRefinement = false) => {
     const textToSend = messageText || inputMessage.trim();
     if (!textToSend || isLoading) return;
 
@@ -130,7 +130,7 @@ const ChatbotTestModal = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
-      const response = await clientsAPI.semanticSearch(textToSend, selectedClient, sessionId);
+      const response = await clientsAPI.semanticSearch(textToSend, selectedClient, sessionId, skipRefinement);
       const botMessage = { 
         sender: 'bot', 
         text: response.answer,
@@ -195,42 +195,9 @@ const ChatbotTestModal = ({ isOpen, onClose }) => {
     
     // Handle both old string format and new object format
     const questionText = typeof suggestion === 'string' ? suggestion : suggestion.question;
-    const originalQuestion = typeof suggestion === 'object' ? suggestion.originalQuestion : suggestion;
-    const userLanguage = typeof suggestion === 'object' ? suggestion.userLanguage : 'en';
-    
-    setInputMessage(questionText);
-    setIsLoading(true);
 
-    try {
-      // Use the clientsAPI method which handles authentication properly
-      const data = await clientsAPI.handleSuggestionClick(
-        originalQuestion || questionText,
-        userLanguage || 'en',
-        selectedClient,
-        sessionId
-      );
-      
-      setMessages(prev => [
-        ...prev,
-        { sender: 'user', text: questionText },
-        { 
-          sender: 'bot', 
-          text: data.answer,
-          suggestedQuestions: data.suggestions || [],
-          followUpQuestions: data.followUpQuestions || []
-        }
-      ]);
-    } catch (error) {
-      console.error('Error sending suggested question:', error);
-      setMessages(prev => [
-        ...prev,
-        { sender: 'user', text: questionText },
-        { sender: 'bot', text: 'Sorry, there was an error processing your question.' }
-      ]);
-    } finally {
-      setIsLoading(false);
-      setInputMessage('');
-    }
+    // Directly send the message, skipping refinement
+    await sendMessage(questionText, true);
   };
 
   const handleKeyPress = (e) => {

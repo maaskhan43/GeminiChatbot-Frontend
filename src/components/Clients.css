@@ -1,6 +1,6 @@
 /* Reset and Base Styles */
 * {
-  box-sizing: border-box;
+  box-sizing: border-box !important;
   margin: 0;
   padding: 0;
 }
@@ -15,14 +15,14 @@ html, body {
 
 /* Clients Container with Animated Background */
 .clients-container {
-  width: 100vw;
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  width: 100vw !important;
+  height: 100vh !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif !important;
   background: linear-gradient(
     135deg,
     #667eea 0%,
@@ -33,7 +33,8 @@ html, body {
   ) !important;
   background-size: 400% 400% !important;
   animation: gradientShift 15s ease infinite !important;
-  padding: 20px;
+  padding: 20px !important;
+  z-index: 1000 !important;
 }
 
 /* Background Animation */
@@ -139,6 +140,22 @@ html, body {
   animation: spin 1s linear infinite;
   margin-bottom: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin: 0;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .error-message {
@@ -443,6 +460,9 @@ html, body {
 }
 
 .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .btn-primary {
@@ -1051,16 +1071,20 @@ html {
 /* Responsive Design */
 @media (max-width: 1400px) {
   .clients-container {
-    padding: 18px;
+    padding: 15px;
   }
   
   .clients-header {
-    padding: 20px 25px;
+    padding: 18px 20px;
+  }
+  
+  .clients-header h2 {
+    font-size: 28px;
   }
   
   .clients-grid {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 18px;
+    gap: 16px;
   }
   
   .client-card {
@@ -1504,27 +1528,9 @@ select:disabled {
 
 /* Loading State */
 .btn:disabled {
-  position: relative;
-  color: transparent !important;
+  opacity: 0.6;
+  cursor: not-allowed;
   pointer-events: none;
-}
-
-.btn:disabled::after {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  top: 50%;
-  left: 50%;
-  margin: -8px 0 0 -8px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: #fff;
-  animation: spin 1s ease-in-out infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 /* Delete Button Styles */

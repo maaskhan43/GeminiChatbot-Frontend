@@ -170,35 +170,18 @@ export const clientsAPI = {
   },
 
   // Semantic search for chatbot
-  semanticSearch: async (query, clientId, sessionId) => {
+  semanticSearch: async (query, clientId, sessionId, skipRefinement = false) => {
     try {
       const response = await apiClient.post('/api/admin/chat/semantic-search', {
         query,
         clientId,
-        sessionId
+        sessionId,
+        skipRefinement // Pass the flag to the backend
       });
       return response.data;
     } catch (error) {
       throw {
         message: error.response?.data?.message || error.message || 'Failed to perform semantic search',
-        status: error.response?.status
-      };
-    }
-  },
-
-  // Handle suggestion click with language context
-  handleSuggestionClick: async (originalQuestion, userLanguage, clientId, sessionId) => {
-    try {
-      const response = await apiClient.post('/api/admin/chat/suggestion-click', {
-        originalQuestion: originalQuestion,
-        userLanguage: userLanguage,
-        clientId: clientId,
-        sessionId: sessionId
-      });
-      return response.data;
-    } catch (error) {
-      throw {
-        message: error.response?.data?.message || error.message || 'Failed to handle suggestion click',
         status: error.response?.status
       };
     }

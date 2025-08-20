@@ -14,6 +14,11 @@ const Clients = () => {
   const [qaLoading, setQALoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [clientToDelete, setClientToDelete] = useState(null);
+  const [showDeleteQAModal, setShowDeleteQAModal] = useState(false);
+  const [clientForQADataDelete, setClientForQADataDelete] = useState(null);
+  const [showDeleteChunksModal, setShowDeleteChunksModal] = useState(false);
+  const [clientForChunksDelete, setClientForChunksDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(null);
 
   useEffect(() => {
     fetchClients();
@@ -349,6 +354,118 @@ const Clients = () => {
     );
   };
 
+  const handleDeleteQAData = (client) => {
+    setClientForQADataDelete(client);
+    setShowDeleteQAModal(true);
+  };
+
+  const confirmDeleteQAData = async () => {
+    if (!clientForQADataDelete) return;
+    try {
+      setError(null);
+      setIsDeleting(clientForQADataDelete._id);
+      await clientsAPI.deleteQAData(clientForQADataDelete._id);
+      fetchClients(); // Refresh clients after successful deletion
+    } catch (error) {
+      setError(`Failed to delete Q&A data for ${clientForQADataDelete.name}: ${error.message}`);
+    } finally {
+      setShowDeleteQAModal(false);
+      setClientForQADataDelete(null);
+      setIsDeleting(null);
+    }
+  };
+
+  const cancelDeleteQAData = () => {
+    setShowDeleteQAModal(false);
+    setClientForQADataDelete(null);
+    setIsDeleting(null);
+  };
+
+  const handleDeleteScrapedChunks = (client) => {
+    setClientForChunksDelete(client);
+    setShowDeleteChunksModal(true);
+  };
+
+  const confirmDeleteScrapedChunks = async () => {
+    if (!clientForChunksDelete) return;
+    try {
+      setError(null);
+      setIsDeleting(clientForChunksDelete._id);
+      await clientsAPI.deleteScrapedChunks(clientForChunksDelete._id);
+      fetchClients(); // Refresh clients after successful deletion
+    } catch (error) {
+      setError(`Failed to delete scraped chunks for ${clientForChunksDelete.name}: ${error.message}`);
+    } finally {
+      setShowDeleteChunksModal(false);
+      setClientForChunksDelete(null);
+      setIsDeleting(null);
+    }
+  };
+
+  const cancelDeleteScrapedChunks = () => {
+    setShowDeleteChunksModal(false);
+    setClientForChunksDelete(null);
+    setIsDeleting(null);
+  };
+
+  const DeleteQAConfirmModal = ({ client, onConfirm, onCancel, loading }) => {
+    if (!client) return null;
+
+    return (
+      <div className="modal-overlay">
+        <div className="modal-content delete-modal">
+          <div className="modal-header">
+            <h3>🗑️ Delete Q&A Data</h3>
+          </div>
+          <div className="modal-body">
+            <div className="delete-warning">
+              <div className="warning-icon">⚠️</div>
+              <div className="warning-content">
+                <h4>Are you sure you want to delete all Q&A data for this client?</h4>
+                <p>This will remove <strong>{client.totalQAPairs || 'all'}</strong> Q&A pairs for <strong>{client.name}</strong>. This action cannot be undone.</p>
+              </div>
+            </div>
+          </div>
+          <div className="modal-actions">
+            <button onClick={onCancel} className="btn btn-secondary" disabled={loading}>Cancel</button>
+            <button onClick={onConfirm} className="btn btn-danger" disabled={loading}>
+              {loading ? <div className="spinner-small"></div> : 'Yes, Delete All'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const DeleteChunksConfirmModal = ({ client, onConfirm, onCancel, loading }) => {
+    if (!client) return null;
+
+    return (
+      <div className="modal-overlay">
+        <div className="modal-content delete-modal">
+          <div className="modal-header">
+            <h3>🗑️ Delete Scraped Data</h3>
+          </div>
+          <div className="modal-body">
+            <div className="delete-warning">
+              <div className="warning-icon">⚠️</div>
+              <div className="warning-content">
+                <h4>Are you sure you want to delete all scraped data for this client?</h4>
+                <p>This will remove all <strong>{client.totalPagesScrapped || ''}</strong> scraped pages for <strong>{client.name}</strong>. This action is irreversible.</p>
+              </div>
+            </div>
+          </div>
+          <div className="modal-actions">
+            <button onClick={onCancel} className="btn btn-secondary" disabled={loading}>Cancel</button>
+            <button onClick={onConfirm} className="btn btn-danger" disabled={loading}>
+              {loading ? <div className="spinner-small"></div> : 'Yes, Delete All'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="clients-container">
@@ -396,6 +513,8 @@ const Clients = () => {
           loading={qaLoading}
           onClose={closeQAModal}
           onDownload={() => handleDownloadMarkdown(selectedClient)}
+          onDeleteQA={handleDeleteQAData}
+          onDeleteChunks={handleDeleteScrapedChunks}
         />
       )}
 
@@ -404,6 +523,24 @@ const Clients = () => {
           client={clientToDelete}
           onConfirm={handleDeleteClient}
           onCancel={cancelDeleteClient}
+        />
+      )}
+
+      {showDeleteQAModal && (
+        <DeleteQAConfirmModal
+          client={clientForQADataDelete}
+          onConfirm={confirmDeleteQAData}
+          onCancel={cancelDeleteQAData}
+          loading={isDeleting === clientForQADataDelete?._id}
+        />
+      )}
+
+      {showDeleteChunksModal && (
+        <DeleteChunksConfirmModal
+          client={clientForChunksDelete}
+          onConfirm={confirmDeleteScrapedChunks}
+          onCancel={cancelDeleteScrapedChunks}
+          loading={isDeleting === clientForChunksDelete?._id}
         />
       )}
 
@@ -478,7 +615,6 @@ const Clients = () => {
                 <button 
                   className="btn btn-outline"
                   onClick={() => handleViewData(client)}
-                  // disabled={!client.totalQAPairs || client.totalQAPairs === 0}
                   title={!client.totalQAPairs || client.totalQAPairs === 0 ? 'No Q&A data available' : 'View Q&A data'}
                 >
                   📄 View Data
@@ -502,11 +638,22 @@ const Clients = () => {
           ))
         )}
       </div>
+
+      {showQAModal && (
+        <QADataModal 
+          client={selectedClient}
+          qaData={qaData}
+          loading={qaLoading}
+          onClose={closeQAModal}
+          onDownload={() => handleDownloadMarkdown(selectedClient)}
+          onDeleteQA={handleDeleteQAData}
+          onDeleteChunks={handleDeleteScrapedChunks}
+        />
+      )}
     </div>
   );
 };
 
-// Add Client Form Component
 const AddClientForm = ({ onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     name: '',
@@ -728,7 +875,7 @@ const AddClientForm = ({ onClose, onSuccess }) => {
   );
 };
 
-const QADataModal = ({ client, qaData, loading, onClose, onDownload }) => {
+const QADataModal = ({ client, qaData, loading, onClose, onDownload, onDeleteQA, onDeleteChunks }) => {
   const generateMarkdownContent = (data) => {
     if (!data || !data.pairs) return '';
     
@@ -793,6 +940,22 @@ const QADataModal = ({ client, qaData, loading, onClose, onDownload }) => {
                 >
                   📥 Download Markdown
                 </button>
+                <button 
+                  className="btn btn-danger-outline"
+                  onClick={() => onDeleteQA(client)}
+                  disabled={!qaData?.totalPairs || qaData?.totalPairs === 0}
+                  title="Delete all Q&A data"
+                >
+                  🗑️ Delete Q&A
+                </button>
+                <button 
+                  className="btn btn-danger-outline"
+                  onClick={() => onDeleteChunks(client)}
+                  disabled={!client?.totalPagesScrapped || client?.totalPagesScrapped === 0}
+                  title="Delete scraped data"
+                >
+                  🗑️ Delete Chunks
+                </button>
                 <button className="btn btn-secondary" onClick={onClose}>
                   Close
                 </button>
@@ -840,7 +1003,6 @@ const MarkdownViewer = ({ content }) => {
   );
 };
 
-// Delete Confirmation Modal Component
 const DeleteConfirmModal = ({ client, onConfirm, onCancel }) => {
   if (!client) return null;
 
@@ -856,40 +1018,17 @@ const DeleteConfirmModal = ({ client, onConfirm, onCancel }) => {
             <div className="warning-icon">⚠️</div>
             <div className="warning-content">
               <h4>Are you sure you want to delete this client?</h4>
-              <p><strong>Client:</strong> {client.name}</p>
-              <p><strong>Website:</strong> {client.website}</p>
-              <p><strong>Pages Scraped:</strong> {client.totalPagesScrapped || 0}</p>
-              <p><strong>Q&A Pairs:</strong> {client.totalQAPairs || 0}</p>
+              <p>This will permanently remove <strong>{client.name}</strong> and all associated data, including scraped content and Q&A pairs.</p>
             </div>
           </div>
-          
           <div className="delete-consequences">
-            <h5>This action will permanently delete:</h5>
-            <ul>
-              <li>All client information and settings</li>
-              <li>All scraped website data</li>
-              <li>All Q&A pairs and training data</li>
-              <li>Chat history and analytics</li>
-            </ul>
-            <p className="warning-text">
-              <strong>This action cannot be undone!</strong>
-            </p>
+            <p className="warning-text"><strong>This action cannot be undone!</strong></p>
           </div>
         </div>
         
         <div className="modal-actions">
-          <button 
-            className="btn btn-secondary"
-            onClick={onCancel}
-          >
-            Cancel
-          </button>
-          <button 
-            className="btn btn-danger"
-            onClick={onConfirm}
-          >
-            🗑️ Delete Client
-          </button>
+          <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+          <button className="btn btn-danger" onClick={onConfirm}>Yes, Delete Client</button>
         </div>
       </div>
     </div>
